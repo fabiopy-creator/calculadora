@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora — Fabio Alexandre</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #161616;
+      --surface2: #1e1e1e;
+      --border: rgba(255,255,255,0.07);
+      --text: #f0ede8;
+      --muted: #666;
+      --accent: #c8f135;
+      --accent-dim: rgba(200,241,53,0.12);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .wrapper {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---- CALCULADORA ---- */
+    .calc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      width: 300px;
+    }
+
+    .brand {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .display {
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      min-height: 96px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .display .expr {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 18px;
+      word-break: break-all;
+      text-align: right;
+    }
+
+    .display .result {
+      font-family: 'DM Mono', monospace;
+      font-size: 36px;
+      font-weight: 500;
+      color: var(--text);
+      transition: color 0.15s;
+      word-break: break-all;
+      text-align: right;
+    }
+
+    .display .result.computed { color: var(--accent); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 16px 0;
+      cursor: pointer;
+      transition: background 0.1s, transform 0.08s, border-color 0.1s;
+      user-select: none;
+    }
+
+    .btn:hover  { background: #252525; border-color: rgba(255,255,255,0.14); }
+    .btn:active { transform: scale(0.93); }
+
+    .btn-op {
+      background: rgba(200,241,53,0.08);
+      color: var(--accent);
+      border-color: rgba(200,241,53,0.18);
+    }
+    .btn-op:hover { background: rgba(200,241,53,0.15); }
+
+    .btn-clear {
+      background: rgba(229,62,62,0.1);
+      color: #fc8181;
+      border-color: rgba(229,62,62,0.2);
+    }
+    .btn-clear:hover { background: rgba(229,62,62,0.18); }
+
+    .btn-eq {
+      background: var(--accent);
+      color: #0d0d0d;
+      border-color: var(--accent);
+      grid-column: span 2;
+      font-weight: 800;
+    }
+    .btn-eq:hover { background: #d4f54a; }
+
+    .btn-extra {
+      background: rgba(139,92,246,0.1);
+      color: #c4b5fd;
+      border-color: rgba(139,92,246,0.2);
+      font-size: 13px;
+    }
+    .btn-extra:hover { background: rgba(139,92,246,0.18); }
+
+    /* ---- HISTÓRICO ---- */
+    .history {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      width: 220px;
+      max-height: 480px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .history h2 {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      flex-shrink: 0;
+    }
+
+    .hist-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .hist-list::-webkit-scrollbar { width: 3px; }
+    .hist-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .hist-item {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 8px 10px;
+      animation: fadeUp 0.2s ease both;
+    }
+
+    .hist-expr {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .hist-res {
+      font-family: 'DM Mono', monospace;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .hist-empty {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding: 2rem 0;
+    }
+
+    .save-btn {
+      margin-top: 12px;
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      border: 1px dashed rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .save-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    @media (max-width: 560px) {
+      .wrapper { flex-direction: column; align-items: stretch; }
+      .calc { width: 100%; }
+      .history { width: 100%; max-height: 260px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- CALCULADORA -->
+  <div class="calc">
+    <div class="brand">Calculadora · Fabio Alexandre</div>
+
+    <div class="display">
+      <div class="expr" id="expr"></div>
+      <div class="result" id="result">0</div>
+    </div>
+
+    <div class="grid">
+      <!-- linha 1 -->
+      <button class="btn btn-clear" onclick="clearAll()">C</button>
+      <button class="btn btn-extra" onclick="toggleSign()">+/−</button>
+      <button class="btn btn-extra" onclick="percent()">%</button>
+      <button class="btn btn-op"    onclick="inputOp('/')">÷</button>
+
+      <!-- linha 2 -->
+      <button class="btn" onclick="inputNum('7')">7</button>
+      <button class="btn" onclick="inputNum('8')">8</button>
+      <button class="btn" onclick="inputNum('9')">9</button>
+      <button class="btn btn-op" onclick="inputOp('*')">×</button>
+
+      <!-- linha 3 -->
+      <button class="btn" onclick="inputNum('4')">4</button>
+      <button class="btn" onclick="inputNum('5')">5</button>
+      <button class="btn" onclick="inputNum('6')">6</button>
+      <button class="btn btn-op" onclick="inputOp('-')">−</button>
+
+      <!-- linha 4 -->
+      <button class="btn" onclick="inputNum('1')">1</button>
+      <button class="btn" onclick="inputNum('2')">2</button>
+      <button class="btn" onclick="inputNum('3')">3</button>
+      <button class="btn btn-op" onclick="inputOp('+')">+</button>
+
+      <!-- linha 5 -->
+      <button class="btn btn-extra" onclick="sqrt()">√</button>
+      <button class="btn" onclick="inputNum('0')">0</button>
+      <button class="btn" onclick="inputDot()">.</button>
+      <button class="btn btn-eq" onclick="calculate()">=</button>
+    </div>
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div class="history">
+    <h2>Histórico</h2>
+    <div class="hist-list" id="histList">
+      <div class="hist-empty" id="histEmpty">Nenhum cálculo ainda</div>
+    </div>
+    <button class="save-btn" onclick="saveHistory()">⬇ salvar histórico (.txt)</button>
+  </div>
+
+</div>
+
+<script>
+  let current = '0'
+  let previous = ''
+  let operator = null
+  let shouldReset = false
+  let history = []
+
+  const resultEl = document.getElementById('result')
+  const exprEl   = document.getElementById('expr')
+  const histList = document.getElementById('histList')
+  const histEmpty = document.getElementById('histEmpty')
+
+  function updateDisplay(val, expr = '') {
+    resultEl.textContent = val
+    exprEl.textContent = expr
+  }
+
+  function inputNum(n) {
+    if (shouldReset) { current = n; shouldReset = false }
+    else current = current === '0' ? n : current + n
+    resultEl.classList.remove('computed')
+    updateDisplay(current, exprEl.textContent)
+  }
+
+  function inputDot() {
+    if (shouldReset) { current = '0.'; shouldReset = false }
+    else if (!current.includes('.')) current += '.'
+    updateDisplay(current, exprEl.textContent)
+  }
+
+  function inputOp(op) {
+    resultEl.classList.remove('computed')
+    if (operator && !shouldReset) calculate(true)
+    previous = current
+    operator = op
+    shouldReset = true
+    const sym = { '+': '+', '-': '−', '*': '×', '/': '÷' }[op]
+    updateDisplay(current, `${previous} ${sym}`)
+  }
+
+  function calculate(silent = false) {
+    if (!operator || !previous) return
+    const a = parseFloat(previous)
+    const b = parseFloat(current)
+    let res
+    const sym = { '+': '+', '-': '−', '*': '×', '/': '÷' }[operator]
+    const exprStr = `${a} ${sym} ${b}`
+
+    if (operator === '/' && b === 0) {
+      updateDisplay('Erro', exprStr)
+      operator = null; return
+    }
+
+    if (operator === '+') res = a + b
+    else if (operator === '-') res = a - b
+    else if (operator === '*') res = a * b
+    else if (operator === '/') res = a / b
+
+    const rounded = parseFloat(res.toFixed(10))
+
+    if (!silent) {
+      addHistory(exprStr, rounded)
+      resultEl.classList.add('computed')
+      updateDisplay(rounded, exprStr + ' =')
+      operator = null
+    } else {
+      updateDisplay(rounded, exprEl.textContent)
+    }
+
+    current = String(rounded)
+    previous = ''
+    shouldReset = true
+  }
+
+  function clearAll() {
+    current = '0'; previous = ''; operator = null; shouldReset = false
+    resultEl.classList.remove('computed')
+    updateDisplay('0', '')
+  }
+
+  function toggleSign() {
+    current = String(parseFloat(current) * -1)
+    updateDisplay(current, exprEl.textContent)
+  }
+
+  function percent() {
+    const val = parseFloat(current) / 100
+    const rounded = parseFloat(val.toFixed(10))
+    addHistory(`${current}%`, rounded)
+    current = String(rounded)
+    resultEl.classList.add('computed')
+    updateDisplay(rounded, `${current}% =`)
+    shouldReset = true
+  }
+
+  function sqrt() {
+    const val = parseFloat(current)
+    if (val < 0) { updateDisplay('Erro', '√ negativo'); return }
+    const res = parseFloat(Math.sqrt(val).toFixed(10))
+    addHistory(`√${val}`, res)
+    current = String(res)
+    resultEl.classList.add('computed')
+    updateDisplay(res, `√${val} =`)
+    shouldReset = true
+  }
+
+  function addHistory(expr, result) {
+    history.unshift({ expr, result })
+    if (history.length > 30) history.pop()
+    renderHistory()
+  }
+
+  function renderHistory() {
+    histEmpty.style.display = 'none'
+    histList.innerHTML = ''
+    history.forEach(h => {
+      const item = document.createElement('div')
+      item.className = 'hist-item'
+      item.innerHTML = `<div class="hist-expr">${h.expr}</div><div class="hist-res">= ${h.result}</div>`
+      histList.appendChild(item)
+    })
+  }
+
+  function saveHistory() {
+    if (!history.length) { alert('Nenhum cálculo para salvar!'); return }
+    const lines = history.map(h => `${h.expr} = ${h.result}`).join('\n')
+    const blob = new Blob([`Histórico — Calculadora do Fabio\n${'='.repeat(35)}\n\n${lines}`], { type: 'text/plain' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = 'historico_calculadora.txt'
+    a.click()
+  }
+
+  // Teclado
+  document.addEventListener('keydown', e => {
+    if (e.key >= '0' && e.key <= '9') inputNum(e.key)
+    else if (e.key === '.') inputDot()
+    else if (e.key === '+') inputOp('+')
+    else if (e.key === '-') inputOp('-')
+    else if (e.key === '*') inputOp('*')
+    else if (e.key === '/') { e.preventDefault(); inputOp('/') }
+    else if (e.key === 'Enter' || e.key === '=') calculate()
+    else if (e.key === 'Escape') clearAll()
+    else if (e.key === 'Backspace') {
+      if (current.length > 1) current = current.slice(0, -1)
+      else current = '0'
+      updateDisplay(current, exprEl.textContent)
+    }
+  })
+</script>
+</body>
+</html>
