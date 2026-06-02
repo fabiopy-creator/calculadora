@@ -13,7 +13,7 @@ Calculadora visual moderna feita com HTML, CSS e JavaScript puro — sem framewo
 
 ## 🌐 Acesse online
 
-ttps://fabiopy-creator.github.io/calculadora
+https://fabiopy-creator.github.io/calculadora
 
 ## 🚀 Como usar localmente
 
